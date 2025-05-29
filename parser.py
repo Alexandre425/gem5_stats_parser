@@ -1,21 +1,31 @@
 import re
 
+def parse_value(val: str):
+    if val == "nan":
+        return None
+    elif val == "inf":
+        return 1e99
+    elif "%" in val:
+        return float(val.strip("%"))
+    elif "." in val:
+        return float(val)
+    else:
+        return int(val)
+
 class Gem5Stat():
     def __init__(self, line: str):
         if match := re.match(r'([a-zA-Z0-9_.:-]+)\s+([0-9.]+|nan|inf)\s+# (.*)', line):
             self.name = match.group(1)
-            self.value = match.group(2)
-            if self.value == "nan":
-                self.value = None
-            elif self.value == "inf":
-                self.value = 1e99
+            self.value = parse_value(match.group(2))
             self.description = match.group(3)
+
         elif match := re.match(r'([a-zA-Z0-9_.:-]+)\s+([0-9.]+)\s+([0-9.]+)%\s+([0-9.]+)%\s*# (.*)', line):
             self.name = match.group(1)
-            self.value = match.group(2)
-            self.percentage = match.group(3)
-            self.percentage_cumulative = match.group(4)
+            self.value = parse_value(match.group(2))
+            self.percentage = parse_value(match.group(3))
+            self.percentage_cumulative = parse_value(match.group(4))
             self.description = match.group(5)
+
         else:
             raise ValueError(f"Cannot parse string into gem5 stat: {line}")
 
